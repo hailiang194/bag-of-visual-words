@@ -1,0 +1,18 @@
+Path,Predict,Expected value,Result
+../another-half-xiao-mi.png,0,0,True
+../box.png,0,0,True
+../genm.jpg,0,0,True
+../half-chua-ruoi.png,1,1,True
+../half-xiaomi.png,0,0,True
+../IMG_20210310_141623.jpg,0,1,False
+../meo.jpg,1,1,True
+../meow.jpg,1,1,True
+../notebook.png,1,0,False
+../object.png,1,1,True
+../object-box.png,0,0,True
+../object-xiaomi.png,0,0,True
+../review-chua-ruoi-anh-chup.png,1,1,True
+../sample_image.jpeg,1,1,True
+../toi-la-ai-–-va-neu-vay-thi-bao-nhieu-.jpg,1,1,True
+../watermelon-gun.jpg,1,0,False
+../xiaomi.png,0,0,True

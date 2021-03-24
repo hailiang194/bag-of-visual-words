@@ -1,18 +1,9 @@
-Path,Predict,Expected value,Result
-../another-half-xiao-mi.png,0,0,True
-../box.png,0,0,True
-../genm.jpg,0,0,True
-../half-chua-ruoi.png,1,1,True
-../half-xiaomi.png,0,0,True
-../IMG_20210310_141623.jpg,0,1,False
-../meo.jpg,1,1,True
-../meow.jpg,1,1,True
-../notebook.png,1,0,False
-../object.png,1,1,True
-../object-box.png,0,0,True
-../object-xiaomi.png,0,0,True
-../review-chua-ruoi-anh-chup.png,1,1,True
-../sample_image.jpeg,1,1,True
-../toi-la-ai-–-va-neu-vay-thi-bao-nhieu-.jpg,1,1,True
-../watermelon-gun.jpg,1,0,False
-../xiaomi.png,0,0,True
+query image, score, correct mapping image
+../object.png,0.72,../books/sample_image.jpeg
+../00-test.png,0.52,../books/0.jpg
+../Test-the-woman-in-the-window.jpeg,0.79,../books/3.jpg
+../review-chua-ruoi-anh-chup.png,0.75,../books/sample_image.jpeg
+../test-the-woman.png,0.60,../books/3.jpg
+../Test-00.jpg,NG,../books/0.jpg
+../test-88.png,0.81,../books/88.jpg
+../test-88.jpg,NG,../books/88.jpg

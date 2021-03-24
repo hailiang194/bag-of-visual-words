@@ -5,54 +5,54 @@ from scipy.cluster.vq import vq
 import sys
 import numpy as np
 import config
-import csv
+import cv2
+import config
+import numpy as np
+from scipy.cluster.vq import vq
+import sys
+import os
+import imutils
 
-def get_predict_value(image, detector, codebook, svm_weight):
-    _, desc = detector.detectAndCompute(image, None) 
-    words, _ = vq(desc, codebook)
-    hist = np.zeros((1, codebook.shape[0]))
-    for word in words.tolist():
-        hist[0, word] += 1
-
+def get_image_hist(image, detector, code_book):
+    clone_image = image.copy()
+    if len(image.shape) > 2 and image.shape[-1] == 3:
+        clone_image = cv2.cvtColor(image, cv2.COLOR_BGRA2GRAY)
+    clone_image = config.pre_process_image(clone_image)
+    _, desc = detector.detectAndCompute(clone_image, None)
+    labels, _ = vq(desc, code_book) 
     
-    return int(svm_weight @ hist.T > 0) 
+    hist = np.zeros((1, code_book.shape[0]))
+    for label in labels.tolist():
+        hist[0, label] += 1
 
-def test(path, detector, codebook, weight, expValue):
-    image = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
-    predicted = get_predict_value(image, detector, codebook, weight)
+    hist = hist / np.linalg.norm(hist)
+    return hist
 
-    return [path, predicted, expValue, predicted == expValue]
 
 if __name__ == "__main__":
-    codebook = np.loadtxt("./codebook.txt")
+    image = cv2.imread(sys.argv[1]) 
+    image = imutils.resize(image, height=475)
+    cv2.imshow("Query", image)
+    code_book = np.loadtxt("./codebook.txt")
     weight = np.loadtxt("./weight.txt")
-    label = {}
-    with open("./labels.txt") as label_reader:
-        for line in label_reader.readlines():
-            token = (line.split())
-            label[token[0]] = int(token[1])
-    
-    test_case = [
-    test("../another-half-xiao-mi.png", config.detector, codebook, weight, label["../backgound/"]),
-    test("../box.png", config.detector, codebook, weight, label["../backgound/"]),
-    test("../genm.jpg", config.detector, codebook, weight, label["../backgound/"]),
-    test("../half-chua-ruoi.png", config.detector, codebook, weight, label["../books/"]),
-    test("../half-xiaomi.png", config.detector, codebook, weight, label["../backgound/"]),
-    test("../IMG_20210310_141623.jpg", config.detector, codebook, weight, label["../books/"]),
-    test("../meo.jpg", config.detector, codebook, weight, label["../books/"]),
-    test("../meow.jpg", config.detector, codebook, weight, label["../books/"]),
-    test("../notebook.png", config.detector, codebook, weight, label["../backgound/"]),
-    test("../object.png", config.detector, codebook, weight, label["../books/"]),
-    test("../object-box.png", config.detector, codebook, weight, label["../backgound/"]),
-    test("../object-xiaomi.png", config.detector, codebook, weight, label["../backgound/"]),
-    test("../review-chua-ruoi-anh-chup.png", config.detector, codebook, weight, label["../books/"]),
-    test("../sample_image.jpeg", config.detector, codebook, weight, label["../books/"]),
-    test("../toi-la-ai-–-va-neu-vay-thi-bao-nhieu-.jpg", config.detector, codebook, weight, label["../books/"]),
-    test("../watermelon-gun.jpg", config.detector, codebook, weight, label["../backgound/"]),
-    test("../xiaomi.png", config.detector, codebook, weight, label["../backgound/"]),
-    ]
+    hist = get_image_hist(image, config.detector,code_book)
+    vector = np.multiply(hist, weight).reshape(code_book.shape[0])
+    distance_vector = np.linalg.norm(vector)
+    database_vector = np.loadtxt("./query_vector.txt")
+    # print(database_vector.shape)
+    score = np.zeros((1, database_vector.shape[0]))
+    for i in range(database_vector.shape[0]):
+        data = database_vector[i, :]
+        distance_data = np.linalg.norm(data)
+        score[0, i] = np.linalg.norm(data / distance_data - vector / distance_vector)
 
-    with open("report.csv", "w") as report:
-        csv_writer = csv.writer(report)
-        csv_writer.writerow(['Path', 'Predict', 'Expected value', 'Result'])
-        csv_writer.writerows(test_case)
+    accepted_score = np.sort(score)[0, 10]
+    for i, path in enumerate(os.listdir("../books/")):
+        if score[0, i] <= accepted_score:
+            expected = " Expected" if "../books/" + path in sys.argv[2:]  else ""
+            print(str(score[0, i]) + expected)
+            mapping_image = cv2.imread("../books/" + path)
+            cv2.imshow("Mapping", mapping_image)
+            key = cv2.waitKey(0)
+            if key == ord('q'):
+                break

@@ -4,12 +4,14 @@ import os
 import cv2
 import config
 
+
 def get_all_desc_in_folder(path, detector, debug=False):
     if debug: print("READING FROM " + path)
     list_desc = None
     for child_path in os.listdir(path):
         if debug: print("Getting descption from " + path + child_path)
-        image = cv2.imread(path + child_path, cv2.IMREAD_GRAYSCALE)
+        image = cv2.imread(path + child_path)
+        image = config.pre_process_image(image)
         _, desc = detector.detectAndCompute(image, None) 
         # for index in desc.shape[1]:
         if list_desc is None:

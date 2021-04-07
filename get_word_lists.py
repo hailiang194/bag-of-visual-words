@@ -22,7 +22,7 @@ if __name__ == "__main__":
     for word in words:
         hist[0, word] += 1
     
-    hist = hist / np.linalg.norm(hist)
+    hist = hist / np.max(hist)
     # hist = hist / 4065.9280613409774
 
     print(hist)

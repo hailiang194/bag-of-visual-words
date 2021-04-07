@@ -9,28 +9,42 @@ import cv2
 def get_all_hist_in_folder(path, detector, codebook, debug=False):
     if debug: print("READING FROM " + path)
     list_hist = None
-    child = []
-    for child_path in os.listdir(path):
-        child.append(path + child_path)
-        if debug: print("Getting descption from " + path + child_path)
-        image = cv2.imread(path + child_path)
-        image = config.pre_process_image(image)
-        _, desc = detector.detectAndCompute(image, None) 
-        words, _ = vq(desc, codebook)
-        hist = np.zeros((1, codebook.shape[0]))
-        if debug: print("Getting it word histogram")
-        for word in words.tolist():
-            hist[0, word] += 1
+    # i = 0
+    image_path = None
+    with open("./index.txt", "w") as list_image_file:
+        image_path = os.listdir(path)
+        print("\n".join(image_path), file=list_image_file)
+        for index, child_path in enumerate(image_path):
+            if debug: print("Getting descption from %r" % (path + child_path))
+            image = cv2.imread(path + child_path.strip())
+            image = config.pre_process_image(image)
+            _, desc = detector.detectAndCompute(image, None) 
+            words, _ = vq(desc, codebook)
+            hist = np.zeros((1, codebook.shape[0]))
+            if debug: print("Getting it word histogram")
+            for word in words.tolist():
+                hist[0, word] += 1
         
-        hist = hist / np.linalg.norm(hist)
-
-        if list_hist is None:
-            list_hist = hist
-        else:
-            list_hist = np.append(list_hist, hist, axis=0)
-    return list_hist, child
+            hist = hist / np.sum(hist)
+         
+            #for i in range(codebook.shape[0]):
+                #if hist[0, i] > 0:
+                    #with open("./index/" + str(i) + ".txt", "a") as index_file:
+                    #    print(str(index), file=index_file)
+            if list_hist is None:
+                list_hist = hist
+            else:
+                list_hist = np.append(list_hist, hist, axis=0)
+            # i += 1
+            # if i == 10:
+            #     break
+    return list_hist
  
 if __name__ == "__main__":
+    print("RESET INDEX")
+    for path in os.listdir("./index/"):
+        with open("./index/" + path,"w") as index_file:
+            print("RESET " + path)
     codebook = np.loadtxt("./codebook.txt")
     print("GENERATING DATASET")
     
@@ -38,16 +52,14 @@ if __name__ == "__main__":
     label = {}
     X = None
     child = []
-    for index, path in enumerate(config.paths):
-        list_hist, child_paths = get_all_hist_in_folder(path, config.detector, codebook, True)  
-        child.extend(child_paths)
-        label[path] = index
+    list_hist = get_all_hist_in_folder(config.paths[0], config.detector, codebook, True)  
         
-        if X is None:
-            X = list_hist
-        else:
-            X = np.append(X, list_hist, axis=0)
+    if X is None:
+        X = list_hist
+    else:
+        X = np.append(X, list_hist, axis=0)
     
+    # print(np.sum(X, axis=0))
     np.savetxt("all_hist.txt", X) 
     # with open("image_path.txt", "w") as imageFile:
     #     for c in child:
